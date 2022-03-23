@@ -1,0 +1,14 @@
+name: ses
+channels:
+  - defaults
+  - conda-forge
+  - pryml
+dependencies:
+  - python=3.7
+  - numpy
+  - sklearn
+  - matplotlib
+  - opencv
+  - scikit-image
+  - simanneal
+prefix: /home/josh/miniconda/envs/ses
