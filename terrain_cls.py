@@ -9,17 +9,16 @@ This file implements the terrain classifier/segmenter described in
 http://www.cim.mcgill.edu/~mrl/pubs/philg/crv2009.pdf. Some parts of the algorithm
 are unclear and are imporvised as necessary.
 """
+from fileinput import filename
 import pickle
-from tkinter.filedialog import test
-
 import numpy as np
 from PIL import Image
 import cv2
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from abc import ABC, abstractmethod
+from sklearn.neighbors import KNeighborsRegressor
+import os
 
 
-class TerrainClassifier(ABC):
+class TerrainClassifier:
     """ Classifies an image as being one of two types of terrain.
     """
     def __init__(self, features=None, *args, **kwargs):
@@ -29,6 +28,7 @@ class TerrainClassifier(ABC):
         "hsv": the average of the h, s, and v channels
         default: rgb
         """
+        
         if features is None:
             features = 'rgb'
         if features == 'rgb':
@@ -37,18 +37,22 @@ class TerrainClassifier(ABC):
         elif features == 'hsv':
             self.extract_features = extract_avg_hsv
             self.num_features = 3
+        elif features == 'both':
+            self.extract_features = extract_both
+            self.num_features = 6
         else:
             raise ValueError('feature_extractor {} not recognized'.format(features))
+        self.features = features
         self.params = None
+        self.knr = KNeighborsRegressor(*args, **kwargs)
 
     def image_predict(self, image):
         """ Predicts the class of the image. The output is a numpy array
         """
         return self.feature_predict(self.extract_features(image))
 
-    @abstractmethod
-    def feature_predict(self, features):
-        pass
+    def feature_predict(self, feature_vec):
+        return self.knr.predict(feature_vec)
 
     def fit(self, X, y):
         """ Set the training set to be X and y. X is an n x num_features numpy
@@ -56,6 +60,7 @@ class TerrainClassifier(ABC):
         samples. The rows of X are points in feature space.
         """
         self.params = [X, y]
+        self.knr.fit(X, y)
 
     def save(self, filename='params.pickle'):
         """ Saves parameters to file.
@@ -131,33 +136,6 @@ class TerrainClassifier(ABC):
         return features
 
 
-class DiscreteTerrainClassifier(TerrainClassifier):
-    def __init__(self, features=None, *args, **kwargs):
-        self.knc = KNeighborsClassifier(*args, **kwargs)
-        super().__init__(features)
-
-    def feature_predict(self, feature_vec):
-        return self.knc.predict_proba(feature_vec)[0,0]
-
-    def fit(self, X, y):
-        super().fit(X, y)
-        self.knc.fit(X, y.reshape(len(y)))
-
-
-class ContinuousTerrainClassifier(TerrainClassifier):
-    def __init__(self, features=None, *args, **kwargs):
-        self.knr = KNeighborsRegressor(*args, **kwargs)
-        super().__init__(features)
-
-    def feature_predict(self, feature_vec):
-        return self.knr.predict(feature_vec)
-
-    def fit(self, X, y):
-        super().fit(X, y)
-        self.knr.fit(X, y)
-
-
-
 def extract_avg_rgb(image):
     """ input: hxwx3 numpy array representing an RGB image
         returns: 1x3 numpy array where the elements are the averages of the 
@@ -173,14 +151,37 @@ def extract_avg_hsv(image):
     hsv_image = cv2.cvtColor(cv2.cvtColor(image, cv2.COLOR_RGB2BGR), cv2.COLOR_BGR2HSV)
     return hsv_image.mean(axis=(0,1))
 
-def test_segment():
-    filename = '/home/josh/code/github/SES-598-Project/2022-03-23T21h31m35s_energy_1384.6755241184524.params'
-    from PIL import Image    
-    main_image = np.array(Image.open('simple_parking_lot.png'))[:,:,:3]
-    classifier = DiscreteTerrainClassifier()
-    classifier.load(filename)
-    mask = classifier.segment_image(main_image, grid_size=130, binary=True)
-    Image.fromarray(mask).show()
+def extract_both(image):
+    return np.hstack([
+        extract_avg_rgb(image),
+        extract_avg_hsv(image)
+    ])
+
+def display_segmentation(image, path, grid_size=130):
+    features = path.split('_')[-1].split('.')[0]
+    classifier = TerrainClassifier(features=features)
+    classifier.load(path)
+    mask = classifier.segment_image(image, grid_size=grid_size, binary=True, flip_scale=False)
+    # Image.fromarray(mask).show()
+    cv2.imshow(os.path.basename(path), cv2.resize(mask, (900,900)))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def review_params():
+    from PIL import Image
+    image = np.array(Image.open('simple_parking_lot.png'))[:,:,:3]
+    dir_name = 'params'
+    filenames = [fn for fn in os.listdir(dir_name) if os.path.isfile(os.path.join(dir_name, fn))]
+    good_gns = [fn for fn in filenames if float(fn.split('_')[1]) < 13]
+    for fn in good_gns:
+        path = os.path.join(dir_name, fn)
+        display_segmentation(image, path)
+
+
 
 if __name__ == '__main__':
-    test_segment()
+    #review_params()
+    path = 'params/en_19.95_md_con_gs_5_nu_1_fe_hsv.params'
+    from PIL import Image
+    image = np.array(Image.open('simple_parking_lot.png'))[:,:,:3]
+    display_segmentation(image, path)
