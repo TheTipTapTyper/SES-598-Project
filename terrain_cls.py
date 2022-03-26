@@ -47,11 +47,12 @@ class TerrainClassifier:
         self.knr = KNeighborsRegressor(*args, **kwargs)
 
     def image_predict(self, image):
-        """ Predicts the class of the image. The output is a numpy array
+        """ Predicts the class of the image. The output is a float between 0 and 1.
         """
         return self.feature_predict(self.extract_features(image))
 
     def feature_predict(self, feature_vec):
+        feature_vec = feature_vec.reshape(1, self.num_features)
         return self.knr.predict(feature_vec)
 
     def fit(self, X, y):
@@ -169,19 +170,19 @@ def display_segmentation(image, path, grid_size=130):
 
 def review_params():
     from PIL import Image
-    image = np.array(Image.open('simple_parking_lot.png'))[:,:,:3]
+    image = np.array(Image.open('complex_parking_lot.png'))[:,:,:3]
     dir_name = 'params'
     filenames = [fn for fn in os.listdir(dir_name) if os.path.isfile(os.path.join(dir_name, fn))]
     good_gns = [fn for fn in filenames if float(fn.split('_')[1]) < 13]
     for fn in good_gns:
         path = os.path.join(dir_name, fn)
-        display_segmentation(image, path)
+        display_segmentation(image, path, grid_size=52)
 
 
 
 if __name__ == '__main__':
-    #review_params()
-    path = 'params/en_19.95_md_con_gs_5_nu_1_fe_hsv.params'
-    from PIL import Image
-    image = np.array(Image.open('simple_parking_lot.png'))[:,:,:3]
-    display_segmentation(image, path)
+    review_params()
+    # path = 'params/en_11.53_md_dct_gs_5_nu_1_fe_both.params'
+    # from PIL import Image
+    # image = np.array(Image.open('complex_parking_lot.png'))[:,:,:3]
+    # display_segmentation(image, path, grid_size=130)
