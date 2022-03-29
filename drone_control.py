@@ -19,8 +19,9 @@ import numpy as np
 from numpy.random import default_rng
 import math
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import cv2
-
+import tqdm
 
 # FSM states
 GO_STRAIGHT = 'GoStraight'
@@ -28,7 +29,7 @@ FIND_LOT = 'FindLot'
 COUNTER_TURN = 'CounterTurn'
 
 MIN_COUNTER_TURN_STEPS = 1
-MAX_COUNTER_TURN_STEPS = 3
+MAX_COUNTER_TURN_STEPS = 9
 
 # conversion from meters to pixels
 # 25px per meter. determined using known size of parking space
@@ -42,8 +43,9 @@ DELTA_V_PX = M_PER_STEP * PX_PER_M
 
 # max turning rate (tightest curve)
 MAX_DELTA_THETA = 15 # degrees
+MAX_COUNTER_TURN_DELTA_THETA = 5
 # how quickly curve radius increases
-DELTA_THETA_DECAY_RATE = .001 # percent decay per interation
+DELTA_THETA_DECAY_RATE = .01 # percent decay per iteration
 
 # starting position is the center of the 6500 pixel square image
 START_X = START_Y = 3750
@@ -58,6 +60,10 @@ NUM_PRIOR_PREDICTIONS = 1
 FOV = 5
 
 TURNS_PER_DIRECTION = 10
+
+NUM_ANIMATION_FRAMES = 200
+
+
 
 class DroneController:
     def __init__(self, params_path, features, terrain_fn=TERRAIN_FILE, fov=FOV, lot_class=1):
@@ -157,7 +163,7 @@ class DroneController:
                 self.state = COUNTER_TURN
                 self.counter_steps_to_go = self.rng.integers(low=MIN_COUNTER_TURN_STEPS, 
                     high=MAX_COUNTER_TURN_STEPS, endpoint=True)
-                self.delta_theta = -MAX_DELTA_THETA
+                self.delta_theta = -MAX_COUNTER_TURN_DELTA_THETA
             else: # gradually widen the spiral
                 self.delta_theta *= (1 - DELTA_THETA_DECAY_RATE)
         elif self.state == COUNTER_TURN:
@@ -176,7 +182,6 @@ class DroneController:
         self.update_state()
         self.move()
         self.path.append((self.x, self.y, self.theta))
-        #print('x: {:.3f} y: {:.3f} s: {} is_over_lot: {}'.format(self.x, self.y, self.state, self.is_over_lot))
 
     def run(self, iterations=10000):
         for i in range(iterations):
@@ -184,13 +189,44 @@ class DroneController:
             if self.x < 0 or self.x >= self.cols or self.y < 0 or self.y >= self.rows:
                 raise OutOfBoundsException(i)
 
-    def plot_path(self):
+    def _init_figure(self):
         fig, ax = plt.subplots()
-        ax.imshow(cv2.flip(self.terrain, 0), origin='lower')
+        fig.tight_layout(pad=0)
+        resolution = 500
+        bg_img = cv2.resize(self.terrain, (resolution, resolution))
+        ax.imshow(cv2.flip(bg_img, 0), origin='lower', extent=[1,6500, 1, 6500])
+        ax.set_xlim([1,6500])
+        ax.set_ylim([1,6500])
+
+        return fig, ax
+
+    def plot_path(self):
+        fig, ax = self._init_figure()
         xs = [pose[0] for pose in self.path]
         ys = [pose[1] for pose in self.path]
         ax.plot(xs, ys, 'k')
         plt.show()
+
+    def _animation_data_gen(self):
+        xs = [pose[0] for pose in self.path]
+        ys = [pose[1] for pose in self.path]
+        interval = len(self.path) // NUM_ANIMATION_FRAMES
+        for i in tqdm.tqdm(range(len(self.path) // interval)):
+            yield (xs[:i * interval], ys[:i * interval])
+
+    def _animation_step(self, frame, ax, line):
+        xs, ys = frame
+        line.set_data(xs, ys)
+        return [line]
+
+    def animate_path(self):
+        fig, ax = self._init_figure()
+        line,  = ax.plot(0, 0, 'k')
+        fa = FuncAnimation(fig, fargs=[ax, line], blit=True,
+            func=self._animation_step, frames=self._animation_data_gen(),
+            save_count=NUM_ANIMATION_FRAMES
+        )
+        fa.save('animation2.mp4')
 
 
 class OutOfBoundsException(Exception):
@@ -206,4 +242,5 @@ if __name__ == '__main__':
         d_ctrl.run()
     except OutOfBoundsException as e:
         print('drone went out of bounds on iteration {}'.format(e.iteration))
+    d_ctrl.animate_path()
     d_ctrl.plot_path()
