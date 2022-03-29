@@ -162,7 +162,7 @@ def display_segmentation(image, path, grid_size=130):
     features = path.split('_')[-1].split('.')[0]
     classifier = TerrainClassifier(features=features)
     classifier.load(path)
-    mask = classifier.segment_image(image, grid_size=grid_size, binary=True, flip_scale=False)
+    mask = classifier.segment_image(image, grid_size=grid_size, binary=False, flip_scale=True)
     # Image.fromarray(mask).show()
     cv2.imshow(os.path.basename(path), cv2.resize(mask, (900,900)))
     cv2.waitKey(0)
@@ -181,8 +181,8 @@ def review_params():
 
 
 if __name__ == '__main__':
-    review_params()
-    # path = 'params/en_11.53_md_dct_gs_5_nu_1_fe_both.params'
-    # from PIL import Image
-    # image = np.array(Image.open('complex_parking_lot.png'))[:,:,:3]
-    # display_segmentation(image, path, grid_size=130)
+    #review_params()
+    path = 'params/en_12.55_md_dct_gs_5_nu_1_fe_rgb.params'
+    from PIL import Image
+    image = np.array(Image.open('complex_parking_lot.png'))[:,:,:3]
+    display_segmentation(image, path, grid_size=52)
