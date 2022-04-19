@@ -140,6 +140,15 @@ class DroneController:
         else:
             raise ValueError('Invalid state: {}'.format(self.state))
 
+    def move(self):
+        cmd = Twist()
+        cmd.linear.x = self.x_vel
+        cmd.linear.y = self.y_vel
+        cmd.linear.z = self.z_vel
+        cmd.angular.z = self.delta_theta
+        cmd.angular.x = cmd.angular.y = 0
+        self.vel_pub.publish(cmd)
+
     def step(self):
         """ Move forward one time step. Update state based on segmenter output
         and move according to new state.
@@ -150,7 +159,7 @@ class DroneController:
 
     def run(self):
         self.ensure_correct_mode()
-        self.MODE = INIT
+        self.state = INIT
         while(1):
             self.step()
             self.rate.sleep()
