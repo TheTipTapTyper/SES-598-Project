@@ -112,7 +112,7 @@ class DroneController:
         if self.state == INIT:
             if TARGET_ALTITUDE - self.y_pos < DISTANCE_THRESHOLD:
                 self.state = GO_STRAIGHT
-                self.y_vel = 0
+                self.z_vel = 0
                 self.x_vel = MAX_VELOCITY
         elif self.state == GO_STRAIGHT:
             if not self.is_over_lot:
@@ -162,7 +162,7 @@ class DroneController:
 
     def run(self):
         self.state = INIT
-        self.y_vel = MAX_VELOCITY
+        self.z_vel = MAX_VELOCITY
         while(1):
             self.step()
             self.rate.sleep()
