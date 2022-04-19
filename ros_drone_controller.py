@@ -110,7 +110,7 @@ class DroneController:
 
     def update_state(self):
         if self.state == INIT:
-            if TARGET_ALTITUDE - self.y_pos < DISTANCE_THRESHOLD:
+            if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
                 self.state = GO_STRAIGHT
                 self.z_vel = 0
                 self.x_vel = MAX_VELOCITY
