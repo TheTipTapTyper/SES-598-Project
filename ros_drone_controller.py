@@ -1,7 +1,7 @@
 import rospy
 from rospy.numpy_msg import numpy_msg # https://answers.ros.org/question/64318/how-do-i-convert-an-ros-image-into-a-numpy-array/
 from mavros_msgs.msg import State
-from geometry_msgs.msg import PoseStamped, Point, Quaternion, Twist
+from geometry_msgs.msg import PoseStamped, Point, Quaternion, TwistStamped
 from sensor_msgs.msg import Image
 import math
 import numpy as np
@@ -48,8 +48,8 @@ class DroneController:
         rospy.Subscriber('/mavros/state', State, callback=self._state_callback)
         rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), callback=self._image_callback)
         rospy.Subscriber('/mavros/local_', State, callback=self._state_callback)
-        #self.pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
-        self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel_unstamped', Twist, queue_size=10)
+        self.pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
+        self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=10)
         rospy.wait_for_service(SET_MODE_SRV)
         rospy.wait_for_service(CMD_ARMING_SRV)
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
@@ -141,7 +141,7 @@ class DroneController:
             raise ValueError('Invalid state: {}'.format(self.state))
 
     def move(self):
-        cmd = Twist()
+        cmd = TwistStamped()
         cmd.linear.x = self.x_vel
         cmd.linear.y = self.y_vel
         cmd.linear.z = self.z_vel
