@@ -68,7 +68,7 @@ class DroneController:
         self.prior_predictions = []
         self.classifier = t_classifier
         self.flip_classes = not bool(lot_class)
-
+        self.turns_since_dir_change = 0
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
