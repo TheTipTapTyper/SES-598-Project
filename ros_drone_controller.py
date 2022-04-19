@@ -42,8 +42,9 @@ NUM_PRIOR_PREDICTIONS = 3
 DISTANCE_THRESHOLD = 1 # meters
 DELTA_THETA_DECAY_RATE = 0.01 # % per step
 
+
 class DroneController:
-    def __init__(self, t_classifier):
+    def __init__(self, t_classifier, lot_class=1):
         rospy.init_node('py_drone_ctrl', anonymous=True)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, 
             callback=self._pose_callback)
@@ -66,6 +67,8 @@ class DroneController:
         self.rng = default_rng()
         self.prior_predictions = []
         self.classifier = t_classifier
+        self.flip_classes = not bool(lot_class)
+
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
