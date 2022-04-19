@@ -34,7 +34,7 @@ FINISHED = 'Finished'           # hover indefintely
 
 TARGET_ALTITUDE = 15 # meters
 TURNS_PER_DIRECTION = 5
-MAX_VELOCITY = 1 # m/s
+MAX_VELOCITY = 5 # m/s
 MAX_DELTA_THETA = .15 # rad/s
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
