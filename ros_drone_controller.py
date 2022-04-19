@@ -15,6 +15,8 @@ from itertools import cycle
 import time
 
 from detect_red_car import detect_red_obj
+from terrain_cls import TerrainClassifier
+
 
 WAYPOINT_THRESHOLD = .3
 SET_MODE_SRV = '/mavros/set_mode'
@@ -41,7 +43,7 @@ DISTANCE_THRESHOLD = 1 # meters
 DELTA_THETA_DECAY_RATE = 0.01 # % per step
 
 class DroneController:
-    def __init__(self):
+    def __init__(self, t_classifier):
         rospy.init_node('py_drone_ctrl', anonymous=True)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, 
             callback=self._pose_callback)
@@ -63,6 +65,7 @@ class DroneController:
         self.is_armed = False
         self.rng = default_rng()
         self.prior_predictions = []
+        self.classifier = t_classifier
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -185,5 +188,8 @@ def deg2rad(angle):
 
 
 if __name__ == '__main__':
-    d_ctrl = DroneController()
+    params_path = 'params/en_12.55_md_dct_gs_5_nu_1_fe_rgb.params'
+    features = params_path.split('_')[-1].split('.')[0]
+    cls = TerrainClassifier(features=features)
+    d_ctrl = DroneController(cls)
     d_ctrl.run()
