@@ -156,9 +156,9 @@ class DroneController:
         self.ensure_correct_mode()
         self.update_state()
         self.move()
-        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} xv: {:.2f} yv: {:.2f} zv: {:.2f} d_theta: {:.2f}',
+        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} xv: {:.2f} yv: {:.2f} zv: {:.2f} d_theta: {:.2f}'.format(
             self.state, self.x_pos, self.y_pos, self.z_pos, self.x_vel, self.y_vel, self.z_vel, self.delta_theta
-        )
+        ))
 
     def run(self):
         self.state = INIT
