@@ -162,6 +162,7 @@ class DroneController:
 
     def run(self):
         self.state = INIT
+        self.y_vel = MAX_VELOCITY
         while(1):
             self.step()
             self.rate.sleep()
