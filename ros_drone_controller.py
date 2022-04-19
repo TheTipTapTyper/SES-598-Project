@@ -9,7 +9,7 @@ from numpy.random import default_rng
 
 from mavros_msgs.srv import CommandBool, SetMode
 from std_msgs.msg import String
-#from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from tf.transformations import euler_from_quaternion
 
 from itertools import cycle
 import time
@@ -69,6 +69,7 @@ class DroneController:
         self.classifier = t_classifier
         self.flip_classes = not bool(lot_class)
         self.turns_since_dir_change = 0
+        self.travel_forward = False
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -108,9 +109,10 @@ class DroneController:
         self.x_pos = pos.x
         self.y_pos = pos.y
         self.z_pos = pos.z
-        # quat = pose.pose.orientation
-        # angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
-        # self.angles = tuple(rad2deg(angle) for angle in angles)
+        quat = pose.pose.orientation
+        angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
+        angles = tuple(rad2deg(angle) for angle in angles)
+        self.roll, self.pitch, self.yaw = angles
 
     def _state_callback(self, msg):
         self.mode = msg.mode
@@ -122,7 +124,7 @@ class DroneController:
             if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
                 self.state = GO_STRAIGHT
                 self.z_vel = 0
-                self.x_vel = MAX_VELOCITY
+                self.travel_forward = True
         elif self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
@@ -164,8 +166,8 @@ class DroneController:
         self.ensure_correct_mode()
         self.update_state()
         self.move()
-        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} xv: {:.2f} yv: {:.2f} zv: {:.2f} d_theta: {:.2f}'.format(
-            self.state, self.x_pos, self.y_pos, self.z_pos, self.x_vel, self.y_vel, self.z_vel, self.delta_theta
+        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} yaw: {:.2f} pitch: {:.2f} roll: {:.2f} d_theta: {:.2f}'.format(
+            self.state, self.x_pos, self.y_pos, self.z_pos, self.yaw, self.pitch, self.roll, self.delta_theta
         ))
 
     def run(self):
