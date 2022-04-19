@@ -62,6 +62,7 @@ class DroneController:
         self.mode = None
         self.is_armed = False
         self.rng = default_rng()
+        self.prior_predictions = []
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
