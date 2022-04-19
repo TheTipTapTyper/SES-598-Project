@@ -47,7 +47,7 @@ class DroneController:
             callback=self._pose_callback)
         rospy.Subscriber('/mavros/state', State, callback=self._state_callback)
         rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), callback=self._image_callback)
-        #rospy.Subscriber('/mavros/local_', State, callback=self._state_callback)
+        rospy.Subscriber('/mavros/local_', State, callback=self._state_callback)
         #self.pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
         self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel_unstamped', Twist, queue_size=10)
         rospy.wait_for_service(SET_MODE_SRV)
@@ -153,6 +153,7 @@ class DroneController:
         """ Move forward one time step. Update state based on segmenter output
         and move according to new state.
         """
+        self.ensure_correct_mode()
         self.update_state()
         self.move()
         print('{}: x: {:.2f} y: {:.2f} z: {:.2f} xv: {:.2f} yv: {:.2f} zv: {:.2f} d_theta: {:.2f}',
@@ -160,7 +161,6 @@ class DroneController:
         )
 
     def run(self):
-        self.ensure_correct_mode()
         self.state = INIT
         while(1):
             self.step()
