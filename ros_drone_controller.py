@@ -142,11 +142,11 @@ class DroneController:
 
     def move(self):
         cmd = TwistStamped()
-        cmd.pose.linear.x = self.x_vel
-        cmd.pose.linear.y = self.y_vel
-        cmd.pose.linear.z = self.z_vel
-        cmd.pose.angular.z = self.delta_theta
-        cmd.pose.angular.x = cmd.angular.y = 0
+        cmd.twist.linear.x = self.x_vel
+        cmd.twist.linear.y = self.y_vel
+        cmd.twist.linear.z = self.z_vel
+        cmd.twist.angular.z = self.delta_theta
+        cmd.twist.angular.x = cmd.angular.y = 0
         self.vel_pub.publish(cmd)
 
     def step(self):
