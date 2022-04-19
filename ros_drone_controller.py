@@ -99,7 +99,9 @@ class DroneController:
         if self.flip_classes:
             prediction = 1 - prediction
         self.prior_predictions.append(prediction)
-        return (sum(self.prior_predictions) / NUM_PRIOR_PREDICTIONS) >= .5
+        result = (sum(self.prior_predictions) / NUM_PRIOR_PREDICTIONS) >= .5
+        print('over lot' if result else 'over desert')
+        return result
 
     def _pose_callback(self, pose):
         pos = pose.pose.position
@@ -135,13 +137,12 @@ class DroneController:
                 self.counter_turn_duration = self.rng.uniform(
                     MIN_COUNTER_TURN_DURATION, MAX_COUNTER_TURN_DURATION
                 )
+                self.counter_turn_start = time.time()
                 self.delta_theta = -MAX_DELTA_THETA
             else: # gradually widen the spiral
                 self.delta_theta *= (1 - DELTA_THETA_DECAY_RATE)
         elif self.state == COUNTER_TURN:
-            if self.counter_steps_to_go > 0:
-                self.counter_steps_to_go -= 1
-            else:
+            if time.time() - self.counter_turn_start > self.counter_turn_duration:
                 self.state = GO_STRAIGHT
                 self.delta_theta = 0
         else:
