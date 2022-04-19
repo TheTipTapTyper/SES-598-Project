@@ -7,7 +7,7 @@ import numpy
 
 from mavros_msgs.srv import CommandBool, SetMode
 from std_msgs.msg import String
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
+#from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 from itertools import cycle
 import time
@@ -83,11 +83,12 @@ class DroneController:
         return (sum(self.prior_predictions) / NUM_PRIOR_PREDICTIONS) >= .5
 
     def _pose_callback(self, pose):
-        pos = pose.pose.position
-        quat = pose.pose.orientation
-        self.position = (pos.x, pos.y, pos.z)
-        angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
-        self.angles = tuple(rad2deg(angle) for angle in angles)
+        pass
+        # pos = pose.pose.position
+        # quat = pose.pose.orientation
+        # self.position = (pos.x, pos.y, pos.z)
+        # angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
+        # self.angles = tuple(rad2deg(angle) for angle in angles)
 
     def _state_callback(self, msg):
         self.mode = msg.mode
