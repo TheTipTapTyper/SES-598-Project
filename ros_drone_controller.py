@@ -191,5 +191,6 @@ if __name__ == '__main__':
     params_path = 'params/en_12.55_md_dct_gs_5_nu_1_fe_rgb.params'
     features = params_path.split('_')[-1].split('.')[0]
     cls = TerrainClassifier(features=features)
+    cls.load(params_path)
     d_ctrl = DroneController(cls)
     d_ctrl.run()
