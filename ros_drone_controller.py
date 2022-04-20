@@ -59,6 +59,7 @@ class DroneController:
         self.cmd_arming_service = rospy.ServiceProxy(CMD_ARMING_SRV, CommandBool)
         self.x_pos = self.y_pos = self.z_pos = 0 # meters
         self.roll = self.pitch = self.yaw = 0 # degrees
+        self.cmd_x = self.cmd_y = self.cmd_z = 0 # m/s
         self.delta_theta = 0 # rad/s
         self.is_ready = False
         self.rate = rospy.Rate(RATE)
@@ -118,12 +119,17 @@ class DroneController:
         self.is_armed = msg.armed
         #print('mode: {} armed: {}'.format(msg.mode, msg.armed))
 
+    def set_vel_cmds_based_on_heading(self):
+        self.cmd_x = np.cos(deg2rad(self.yaw)) * MAX_VELOCITY
+        self.cmd_y = np.sin(deg2rad(self.yaw)) * MAX_VELOCITY
+
     def update_state(self):
         if self.state == INIT:
             if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
                 self.state = GO_STRAIGHT
                 self.cmd_z = 0
-                self.travel_forward = True
+                self.delta_theta = 0
+                self.set_vel_cmds_based_on_heading()
         elif self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
@@ -146,16 +152,16 @@ class DroneController:
             if time.time() - self.counter_turn_start > self.counter_turn_duration:
                 self.state = GO_STRAIGHT
                 self.delta_theta = 0
+                self.set_vel_cmds_based_on_heading()
         else:
             raise ValueError('Invalid state: {}'.format(self.state))
 
     def move(self):
         cmd = Twist()
-        if self.travel_forward:
-            cmd.linear.x = np.cos(deg2rad(self.yaw)) * MAX_VELOCITY
-            cmd.linear.y = np.sin(deg2rad(self.yaw)) * MAX_VELOCITY
-        else:
-            cmd.linear.x = cmd.linear.y = 0
+        if self.delta_theta > 0:
+            self.set_vel_cmds_based_on_heading()
+        cmd.linear.x = self.cmd_x
+        cmd.linear.y = self.cmd_y
         cmd.linear.z = self.cmd_z
         cmd.angular.z = self.delta_theta
         cmd.angular.x = cmd.angular.y = 0
