@@ -28,7 +28,7 @@ class DronePosPlotter:
         self.path_x = []
         self.path_y = []
         self.read_to_animate = False
-        self.rate = rospy.Rate(RATE)
+        #self.rate = rospy.Rate(RATE)
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
@@ -84,7 +84,7 @@ class DronePosPlotter:
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
-        print(image)
+        print(type(image))
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
