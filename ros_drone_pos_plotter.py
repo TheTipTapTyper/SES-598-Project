@@ -70,6 +70,8 @@ class DronePosPlotter:
 
     @property
     def image(self):
+        return np.ones((400,700, 3), dtype=np.uint8)
+
         return cv2.cvtColor(
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
