@@ -58,7 +58,7 @@ class DroneController:
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
         self.cmd_arming_service = rospy.ServiceProxy(CMD_ARMING_SRV, CommandBool)
         self.x_pos = self.y_pos = self.z_pos = 0 # meters
-        self.roll, self.pitch, self.yaw = 0 # degrees
+        self.roll = self.pitch = self.yaw = 0 # degrees
         self.delta_theta = 0 # rad/s
         self.is_ready = False
         self.rate = rospy.Rate(RATE)
