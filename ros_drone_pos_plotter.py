@@ -15,6 +15,8 @@ MIN_Y_COORD = -150
 
 RATE = 10 # Hz
 
+WINDOW_NAME = 'Drone Path'
+
 
 class DronePosPlotter:
     def __init__(self, terrain_fn, output_fn=None):
@@ -78,11 +80,15 @@ class DronePosPlotter:
         )
 
     def _display(self):
-        cv2.imshow('Drone Path', self.image)
+        cv2.imshow(WINDOW_NAME, self.image)
         if cv2.waitKey(1) & 0xFF == 27:
+            cv2.destroyAllWindows()
             exit()
 
     def run(self):
+        cv2.startWindowThread()
+        cv2.namedWindow(WINDOW_NAME)
+
         print('initializing figure')
         self._init_figure()
         print('saving background for blitting')
