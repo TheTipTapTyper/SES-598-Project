@@ -90,7 +90,10 @@ class DronePosPlotter:
         print(self.image.shape)
         self._display()
 
-        input()
+        while(1):
+            self._display()
+            self.rate.sleep()
+
         exit()
 
         print('waiting for data to start arriving...')
