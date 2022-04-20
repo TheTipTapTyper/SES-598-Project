@@ -5,7 +5,7 @@ from geometry_msgs.msg import PoseStamped, Point, Quaternion, Twist
 from sensor_msgs.msg import Image
 import math
 import numpy as np
-from numpy.random import default_rng
+import random
 
 from mavros_msgs.srv import CommandBool, SetMode
 from std_msgs.msg import String
@@ -64,7 +64,6 @@ class DroneController:
         self.rate = rospy.Rate(RATE)
         self.mode = None
         self.is_armed = False
-        self.rng = default_rng()
         self.prior_predictions = []
         self.classifier = t_classifier
         self.flip_classes = not bool(lot_class)
@@ -136,7 +135,7 @@ class DroneController:
         elif self.state == FIND_LOT:
             if self.is_over_lot:
                 self.state = COUNTER_TURN
-                self.counter_turn_duration = self.rng.uniform(
+                self.counter_turn_duration = random.uniform(
                     MIN_COUNTER_TURN_DURATION, MAX_COUNTER_TURN_DURATION
                 )
                 self.counter_turn_start = time.time()
