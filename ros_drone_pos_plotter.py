@@ -81,9 +81,11 @@ class DronePosPlotter:
             exit()
 
     def run(self):
+        print('initializing figure')
         self._init_figure()
+        print('saving background for blitting')
         self._save_background_for_blitting()
-
+        print('displaying saved image')
         Image.fromarray(self.image).show()
 
         input()
