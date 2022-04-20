@@ -105,12 +105,24 @@ class DronePosPlotter:
         time.sleep(2)
         self._create_path_line()
         while(1):
+            start = time.time()
             self._update_path_line()
+            print('_update_path_line took {:.3f} sec'.format(time.time() - start))
+
+            start = time.time()
             self._restore_background()
+            print('_restore_background took {:.3f} sec'.format(time.time() - start))
+
+            start = time.time()
             self._draw_path_line()
+            print('_draw_path_line took {:.3f} sec'.format(time.time() - start))
+
+            start = time.time()
             self._display()
-            self._sleep()
-            print(len(self.path_x))
+            print('_display took {:.3f} sec'.format(time.time() - start))
+
+            # time.sleep(DELAY) #self._sleep()
+            # print(len(self.path_x))
 
 
 
