@@ -17,6 +17,8 @@ WINDOW_NAME = 'Drone Path'
 
 DELAY = .1 # sec
 
+INTERVAL = 100
+
 
 class DronePosPlotter:
     def __init__(self, terrain_fn, output_fn=None):
@@ -29,12 +31,15 @@ class DronePosPlotter:
         self.path_y = []
         self.read_to_animate = False
         self.last_updated = time.time()
+        self.callbacks_since_last_recorded = 0
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
-        self.path_x.append(pos.x)
-        self.path_y.append(pos.y)
-        self.read_to_animate = True
+        if self.callbacks_since_last_recorded >= INTERVAL:
+            self.path_x.append(pos.x)
+            self.path_y.append(pos.y)
+            self.callbacks_since_last_recorded = 0
+            self.read_to_animate = True
 
     def _init_figure(self):
         img = Image.open(self.terrain_fn)
@@ -95,9 +100,9 @@ class DronePosPlotter:
         while not self.read_to_animate:
             time.sleep(.2)
         print('Starting animation. Press escape to exit and save to file.')
-
+        self._display()
+        time.sleep(2)
         self._create_path_line()
-
         while(1):
             self._update_path_line()
             self._restore_background()
