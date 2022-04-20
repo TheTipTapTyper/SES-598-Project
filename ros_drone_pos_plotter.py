@@ -80,22 +80,21 @@ class DronePosPlotter:
         )
 
     def _display(self):
-        cv2.imshow(WINDOW_NAME, self.image)
+        image = cv2.cvtColor(
+            np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
+            cv2.COLOR_RGB2BGR
+        )
+        cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
             exit()
 
     def run(self):
-        cv2.startWindowThread()
-        cv2.namedWindow(WINDOW_NAME)
-
         print('initializing figure')
         self._init_figure()
         print('saving background for blitting')
         self._save_background_for_blitting()
         print('displaying saved image')
-        print(self.image)
-        print(self.image.shape)
         self._display()
 
         while(1):
