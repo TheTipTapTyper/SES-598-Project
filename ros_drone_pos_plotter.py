@@ -13,9 +13,9 @@ MIN_X_COORD = -150
 MAX_Y_COORD = 150
 MIN_Y_COORD = -150
 
-RATE = 10 # Hz
-
 WINDOW_NAME = 'Drone Path'
+
+DELAY = .1 # sec
 
 
 class DronePosPlotter:
@@ -28,7 +28,7 @@ class DronePosPlotter:
         self.path_x = []
         self.path_y = []
         self.read_to_animate = False
-        #self.rate = rospy.Rate(RATE)
+        self.last_updated = time.time()
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
@@ -41,7 +41,6 @@ class DronePosPlotter:
         # remove alpha channel
         self.terrain = np.array(img)[:,:,:3]
         self.rows, self.cols = self.terrain.shape[:2]
-
         fig, ax = plt.subplots()
         fig.tight_layout(pad=0)
         resolution = 500
@@ -60,24 +59,15 @@ class DronePosPlotter:
         self.background_img = self.fig.canvas.copy_from_bbox(self.fig.bbox)
 
     def _create_path_line(self):
-        self.path_line, = plt.plot()
+        self.path_line, = plt.plot(self.path_x, self.path_y, 'k')
 
     def _update_path_line(self):
-        self.path_line.set_data()
+        self.path_line.set_data(self.path_x, self.path_y)
 
     def _draw_path_line(self):
         self.ax.draw_artist(self.path_line)
         self.fig.canvas.blit(self.ax.bbox)
         self.fig.canvas.flush_events()
-
-    @property
-    def image(self):
-        return np.ones((400,700, 3), dtype=np.uint8)
-
-        return cv2.cvtColor(
-            np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
-            cv2.COLOR_RGB2BGR
-        )
 
     def _display(self):
         image = cv2.cvtColor(
@@ -90,19 +80,16 @@ class DronePosPlotter:
             cv2.destroyAllWindows()
             exit()
 
+    def _sleep(self):
+        time_since_update = time.time() - self.last_updated
+        sleep_duration = max(time_since_update, DELAY)
+        time.sleep(sleep_duration)
+
     def run(self):
         print('initializing figure')
         self._init_figure()
         print('saving background for blitting')
         self._save_background_for_blitting()
-        print('displaying saved image')
-        self._display()
-
-        while(1):
-            self._display()
-            time.sleep(.1)
-
-        exit()
 
         print('waiting for data to start arriving...')
         while not self.read_to_animate:
@@ -116,7 +103,9 @@ class DronePosPlotter:
             self._restore_background()
             self._draw_path_line()
             self._display()
-            self.rate.sleep()
+            self._sleep()
+            print(len(self.path_x))
+
 
 
 
