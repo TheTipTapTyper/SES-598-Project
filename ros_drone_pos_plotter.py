@@ -31,7 +31,7 @@ class DronePosPlotter:
         self.path_y = []
         self.read_to_animate = False
         self.last_updated = time.time()
-        self.callbacks_since_last_recorded = 0
+        self.callbacks_since_last_recorded = INTERVAL
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
@@ -40,6 +40,7 @@ class DronePosPlotter:
             self.path_y.append(pos.y)
             self.callbacks_since_last_recorded = 0
             self.read_to_animate = True
+        self.callbacks_since_last_recorded += 1
 
     def _init_figure(self):
         img = Image.open(self.terrain_fn)
