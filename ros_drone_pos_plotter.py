@@ -100,7 +100,7 @@ class DronePosPlotter:
 
         while(1):
             self._display()
-            self.rate.sleep()
+            time.sleep(.1)
 
         exit()
 
