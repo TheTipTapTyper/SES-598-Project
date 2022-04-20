@@ -178,7 +178,6 @@ class DroneController:
             self.rate.sleep()
 
 
-
 def distance(pos1, pos2):
     total = 0
     for coord1, coord2 in zip(pos1, pos2):
