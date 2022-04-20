@@ -84,6 +84,7 @@ class DronePosPlotter:
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
+        print(image)
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
