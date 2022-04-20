@@ -58,7 +58,6 @@ class DroneController:
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
         self.cmd_arming_service = rospy.ServiceProxy(CMD_ARMING_SRV, CommandBool)
         self.x_pos = self.y_pos = self.z_pos = 0 # meters
-        self.x_vel = self.y_vel = self.z_vel = 0 # m/s
         self.delta_theta = 0 # rad/s
         self.is_ready = False
         self.rate = rospy.Rate(RATE)
@@ -122,7 +121,7 @@ class DroneController:
         if self.state == INIT:
             if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
                 self.state = GO_STRAIGHT
-                self.z_vel = 0
+                self.cmd_z = 0
                 self.travel_forward = True
         elif self.state == GO_STRAIGHT:
             if not self.is_over_lot:
@@ -151,9 +150,12 @@ class DroneController:
 
     def move(self):
         cmd = Twist()
-        cmd.linear.x = self.x_vel
-        cmd.linear.y = self.y_vel
-        cmd.linear.z = self.z_vel
+        if self.travel_forward:
+            cmd.linear.x = np.cos(deg2rad(self.yaw)) * MAX_VELOCITY
+            cmd.linear.y = np.sin(deg2rad(self.yaw)) * MAX_VELOCITY
+        else:
+            cmd.linear.x = cmd.linear.y = 0
+        cmd.linear.z = self.cmd_z
         cmd.angular.z = self.delta_theta
         cmd.angular.x = cmd.angular.y = 0
         self.vel_pub.publish(cmd)
@@ -172,7 +174,7 @@ class DroneController:
     def run(self):
         self.state = INIT
         self.travel_forward = False
-        self.z_vel = MAX_VELOCITY
+        self.cmd_z = MAX_VELOCITY
         while(1):
             self.step()
             self.rate.sleep()
