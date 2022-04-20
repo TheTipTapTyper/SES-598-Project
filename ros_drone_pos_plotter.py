@@ -88,7 +88,7 @@ class DronePosPlotter:
         print('displaying saved image')
         print(self.image)
         print(self.image.shape)
-        Image.fromarray(self.image).show()
+        self._display()
 
         input()
         exit()
