@@ -86,6 +86,8 @@ class DronePosPlotter:
         print('saving background for blitting')
         self._save_background_for_blitting()
         print('displaying saved image')
+        print(self.image)
+        print(self.image.shape)
         Image.fromarray(self.image).show()
 
         input()
