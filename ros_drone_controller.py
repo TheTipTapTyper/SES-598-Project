@@ -35,12 +35,12 @@ FINISHED = 'Finished'           # hover indefintely
 TARGET_ALTITUDE = 15 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 5 # m/s
-MAX_DELTA_THETA = .15 # rad/s
+MAX_DELTA_THETA = .5 # rad/s
+DELTA_THETA_DECAY_RATE = 0.01 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
 NUM_PRIOR_PREDICTIONS = 3
 DISTANCE_THRESHOLD = 1 # meters
-DELTA_THETA_DECAY_RATE = 0.01 # % per step
 
 
 class DroneController:
@@ -171,6 +171,7 @@ class DroneController:
 
     def run(self):
         self.state = INIT
+        self.travel_forward = False
         self.z_vel = MAX_VELOCITY
         while(1):
             self.step()
