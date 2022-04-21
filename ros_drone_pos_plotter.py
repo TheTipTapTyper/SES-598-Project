@@ -110,9 +110,9 @@ class DronePosPlotter:
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
+        self.fig_image_shape = image.shape
         if self.camera_view is not None:
             image = np.vstack([image, self.camera_view])
-        self.fig_image_shape = image.shape
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
@@ -141,7 +141,7 @@ class DronePosPlotter:
             self._step()
             updates += 1
             print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
-            time.sleep(2)
+            time.sleep(.2)
 
 
 
