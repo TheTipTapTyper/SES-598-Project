@@ -67,10 +67,10 @@ class DronePosPlotter:
             image = cv2.resize(image, (w, h))
             if self.d_ctrl_status is not None:
                 image = cv2.putText(
-                    image=image, 
+                    img=image, 
                     text=self.d_ctrl_status, 
                     org=TEXT_COORDS,
-                    font=FONT, 
+                    fontFace=FONT, 
                     fontScale=FONT_SCALE, 
                     color=FONT_COLOR
                 )
