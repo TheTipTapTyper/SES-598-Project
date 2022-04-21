@@ -3,6 +3,7 @@ from rospy.numpy_msg import numpy_msg # https://answers.ros.org/question/64318/h
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, Twist
 from sensor_msgs.msg import Image as SensorImage
+from std_msgs.msg import String
 import math
 import numpy as np
 import random
@@ -60,6 +61,9 @@ class DroneController:
         self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel_unstamped', 
             Twist, queue_size=10
         )
+        self.status_pub = rospy.Publisher('/drone_controller/status', 
+            String, queue_size=10
+        )
         rospy.wait_for_service(SET_MODE_SRV)
         rospy.wait_for_service(CMD_ARMING_SRV)
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
@@ -79,6 +83,7 @@ class DroneController:
         self.turns_since_dir_change = 0
         self.turn_direction = 1
         self.camera_view = None
+        self.current_terrain = None
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -112,6 +117,10 @@ class DroneController:
             prediction = 1 - prediction
         self.prior_predictions.append(prediction)
         result = (sum(self.prior_predictions) / len(self.prior_predictions)) >= .5
+        if result:
+            self.current_terrain = 'parking_lot'
+        else:
+            self.current_terrain = 'desert'
         return result
 
     def _pose_callback(self, msg):
@@ -128,9 +137,13 @@ class DroneController:
         self.mode = msg.mode
         self.is_armed = msg.armed
 
-    def set_vel_cmds_based_on_heading(self):
-        self.cmd_x = np.cos(deg2rad(self.yaw)) * MAX_VELOCITY
-        self.cmd_y = np.sin(deg2rad(self.yaw)) * MAX_VELOCITY
+    def _publish_status(self):
+        status = 'state: {}\nterrain: {}\n pos (xyz): {:.1f} {:.1f} {:.1f}\n'
+        status += 'heading: {:.1f} deg\ndelta_theta: {:.2f} deg/tick'
+        status.format(self.state, self.current_terrain, self.x_pos, self.y_pos,
+            self.z_pos, self.heading, self.delta_theta
+        )
+        self.status_pub.publish(status)
 
     def update_state(self):
         # if self.state == INIT:
@@ -197,6 +210,7 @@ class DroneController:
         self.ensure_correct_mode()
         self.update_state()
         self.move()
+        self._publish_status()
         print('{}: x: {:.2f} y: {:.2f} z: {:.2f} yaw: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
             self.state, self.x_pos, self.y_pos, self.z_pos, self.yaw, self.heading, self.delta_theta
         ))

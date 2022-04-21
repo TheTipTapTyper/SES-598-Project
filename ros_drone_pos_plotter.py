@@ -2,6 +2,7 @@ import rospy
 from rospy.numpy_msg import numpy_msg
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image as SensorImage
+from std_msgs.msg import String
 
 import numpy as np
 import cv2
@@ -42,6 +43,9 @@ class DronePosPlotter:
         rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(SensorImage), 
             callback=self._image_callback
         )
+        rospy.Subscriber('/drone_controller/status', String, 
+            callback=self._status_callback
+        )
         self.path_x = []
         self.path_y = []
         self.ready_to_animate = False
@@ -49,6 +53,11 @@ class DronePosPlotter:
         self.callbacks_since_last_recorded = INTERVAL
         self.camera_view = None
         self.fig_image_shape = None
+        self.d_ctrl_status = None
+
+    def _status_callback(self, msg):
+        self.d_ctrl_status = msg
+        print(self.d_ctrl_status)
 
     def _image_callback(self, msg):
         if self.fig_image_shape is not None:
