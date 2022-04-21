@@ -66,6 +66,7 @@ def detect_red_obj(img, coverage_threshold=0.005):
     """
     mask = red_mask(img)
     coverage = mask.sum() / mask.size
+    print(coverage)
     if coverage < coverage_threshold:
         return None
     y, x = np.array(np.where(mask == 1)).mean(axis=1)
