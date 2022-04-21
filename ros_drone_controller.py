@@ -174,7 +174,6 @@ class DroneController:
             if time.time() - self.counter_turn_start > self.counter_turn_duration:
                 self.state = GO_STRAIGHT
                 self.delta_theta = 0
-                self.set_vel_cmds_based_on_heading()
         else:
             raise ValueError('Invalid state: {}'.format(self.state))
 
