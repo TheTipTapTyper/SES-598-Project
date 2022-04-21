@@ -28,6 +28,7 @@ INTERVAL = 25
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 FONT_SCALE = .5
 FONT_COLOR = (255, 0, 0)
+THICKNESS = 2
 TEXT_X = 20
 TEXT_Y = 20
 
@@ -75,7 +76,8 @@ class DronePosPlotter:
                         org=(TEXT_X, TEXT_Y + idx*TEXT_Y),
                         fontFace=FONT, 
                         fontScale=FONT_SCALE, 
-                        color=FONT_COLOR
+                        color=FONT_COLOR,
+                        thickness=THICKNESS
                     )
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
