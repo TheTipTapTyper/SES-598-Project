@@ -35,7 +35,7 @@ FINISHED = 'Finished'           # hover indefintely
 TARGET_ALTITUDE = 15 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 5 # m/s
-MAX_DELTA_THETA = .5 # rad/s
+MAX_DELTA_THETA = 1 # degrees/step
 DELTA_THETA_DECAY_RATE = 0.01 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
@@ -60,6 +60,7 @@ class DroneController:
         self.x_pos = self.y_pos = self.z_pos = 0 # meters
         self.roll = self.pitch = self.yaw = 0 # degrees
         self.cmd_x = self.cmd_y = self.cmd_z = 0 # m/s
+        self.heading = 0 # direction of travel in degrees
         self.delta_theta = 0 # rad/s
         self.is_ready = False
         self.rate = rospy.Rate(RATE)
@@ -69,7 +70,7 @@ class DroneController:
         self.classifier = t_classifier
         self.flip_classes = not bool(lot_class)
         self.turns_since_dir_change = 0
-        self.travel_forward = False
+        self.turn_direction = 1
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -101,7 +102,6 @@ class DroneController:
             prediction = 1 - prediction
         self.prior_predictions.append(prediction)
         result = (sum(self.prior_predictions) / len(self.prior_predictions)) >= .5
-        print('over lot' if result else 'over desert')
         return result
 
     def _pose_callback(self, msg):
@@ -117,7 +117,6 @@ class DroneController:
     def _state_callback(self, msg):
         self.mode = msg.mode
         self.is_armed = msg.armed
-        #print('mode: {} armed: {}'.format(msg.mode, msg.armed))
 
     def set_vel_cmds_based_on_heading(self):
         self.cmd_x = np.cos(deg2rad(self.yaw)) * MAX_VELOCITY
@@ -158,13 +157,18 @@ class DroneController:
 
     def move(self):
         cmd = Twist()
-        if self.delta_theta > 0:
-            self.set_vel_cmds_based_on_heading()
-        cmd.linear.x = self.cmd_x
-        cmd.linear.y = self.cmd_y
-        cmd.linear.z = self.cmd_z
-        cmd.angular.z = self.delta_theta
-        cmd.angular.x = cmd.angular.y = 0
+        if self.state == INIT: # takeoff
+            cmd.linear.z = MAX_VELOCITY
+            cmd.linear.x = cmd.linear.y = 0
+        elif self.state == FINISHED: # hover
+            cmd.linear.x = cmd.linear.y = cmd.linear.z = 0
+        else:
+            self.heading += self.turn_direction * self.delta_theta
+            self.heading = self.heading % 360
+            heading = deg2rad(self.heading)
+            cmd.linear.x = np.cos(heading) * MAX_VELOCITY
+            cmd.linear.y = np.sin(heading) * MAX_VELOCITY
+            cmd.linear.z = 0
         self.vel_pub.publish(cmd)
 
     def step(self):
@@ -180,8 +184,6 @@ class DroneController:
 
     def run(self):
         self.state = INIT
-        self.travel_forward = False
-        self.cmd_z = MAX_VELOCITY
         while(1):
             self.step()
             self.rate.sleep()
