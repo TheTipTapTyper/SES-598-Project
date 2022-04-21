@@ -36,7 +36,7 @@ TARGET_ALTITUDE = 7.5 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 3.5 # m/s
 MAX_DELTA_THETA = 2.5 # degrees/step
-DELTA_THETA_DECAY_RATE = 0.005 # % per step
+DELTA_THETA_DECAY_RATE = 0.001 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
 NUM_PRIOR_PREDICTIONS = 3
@@ -167,7 +167,10 @@ class DroneController:
     def move(self):
         cmd = Twist()
         if self.state == INIT: # takeoff
-            cmd.linear.z = MAX_VELOCITY
+            z_cmd = MAX_VELOCITY
+            if self.z_pos > TARGET_ALTITUDE:
+                z_cmd *= -1
+            cmd.linear.z = z_cmd
             cmd.linear.x = cmd.linear.y = 0
         elif self.state == FINISHED: # hover
             cmd.linear.x = cmd.linear.y = cmd.linear.z = 0
