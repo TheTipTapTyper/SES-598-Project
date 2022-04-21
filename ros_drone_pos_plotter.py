@@ -1,7 +1,7 @@
 import rospy
 from rospy.numpy_msg import numpy_msg
 from geometry_msgs.msg import PoseStamped
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image as SensorImage
 
 import numpy as np
 import cv2
@@ -39,7 +39,7 @@ class DronePosPlotter:
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, 
             callback=self._pose_callback
         )
-        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), 
+        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(SensorImage), 
             callback=self._image_callback
         )
         self.path_x = []
