@@ -205,7 +205,7 @@ class DroneController:
         self.state = GO_STRAIGHT
         while self.camera_view is None:
             print('waiting for camera signal')
-            self.sleep(.5)
+            time.sleep(.5)
         while(1):
             self.step()
             self.rate.sleep()
