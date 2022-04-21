@@ -25,7 +25,7 @@ WINDOW_NAME = 'Drone Path'
 
 DELAY = .1 # sec
 
-INTERVAL = 100
+INTERVAL = 50
 
 
 class DronePosPlotter:
@@ -49,6 +49,7 @@ class DronePosPlotter:
             y = np.interp(pos.y, (MIN_Y_COORD, MAX_Y_COORD), (MIN_Y_PIX, MAX_Y_PIX))
             self.path_x.append(x)
             self.path_y.append(y)
+            print(x, y)
             self.callbacks_since_last_recorded = 0
             self.ready_to_animate = True
         self.callbacks_since_last_recorded += 1
@@ -92,7 +93,6 @@ class DronePosPlotter:
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
-        print(type(image))
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
