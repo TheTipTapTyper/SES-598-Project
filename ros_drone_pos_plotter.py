@@ -155,7 +155,7 @@ class DronePosPlotter:
         print('waiting for data to start arriving...')
         while self.path is None:
             time.sleep(.2)
-        print('Starting animation. Press escape to exit and save to file.')
+        print('Starting animation. Press escape to exit.')
         self._create_path_line()
         self.running = True
         updates = 0
