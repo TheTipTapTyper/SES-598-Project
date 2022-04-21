@@ -1,10 +1,27 @@
+"""
+Author: Joshua Martin
+Email: jmmartin397@protonmail.com
+Created: 4/21/2022
+Class: SES 598 Autonomous Exploration Systems
+Project: Parking Lot Explorer
+
+This file implements a drone controller class which uses a trained terrain
+segmenter in order to stay over the top of a parking lot in order to locate
+a car. The controller is a finite state machine (FSM) which moves in a straight
+line while over the parking lot and begins to spiral when it finds itself over
+the desert until it is once again over the lot. Once it does, it will counter
+turn by a random degree for the sake of more even exploration/lot coverage.
+
+This controller takes video and pose input from ros topics and publishes
+velocity commands to the drone through another ros topic.
+"""
+
 import rospy
 from rospy.numpy_msg import numpy_msg # https://answers.ros.org/question/64318/how-do-i-convert-an-ros-image-into-a-numpy-array/
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped, Twist
 from sensor_msgs.msg import Image as SensorImage
 from std_msgs.msg import String
-import math
 import numpy as np
 import random
 
