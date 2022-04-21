@@ -111,7 +111,7 @@ class DronePosPlotter:
             cv2.COLOR_RGB2BGR
         )
         if self.camera_view is not None:
-            image = np.vstack(image, self.camera_view)
+            image = np.vstack([image, self.camera_view])
         self.fig_image_shape = image.shape
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
