@@ -66,6 +66,7 @@ class DronePosPlotter:
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
             if self.d_ctrl_status is not None:
+                print(type(self.d_ctrl_status))
                 image = cv2.putText(
                     img=image, 
                     text=self.d_ctrl_status, 
