@@ -43,9 +43,7 @@ class DronePosPlotter:
         rospy.Subscriber('/drone_controller/status', String, 
             callback=self._status_callback
         )
-        self.path_x = []
-        self.path_y = []
-        self.ready_to_animate = False
+        self.path = None
         self.last_updated = time.time()
         self.callbacks_since_last_recorded = INTERVAL
         self.camera_view = None
@@ -68,11 +66,14 @@ class DronePosPlotter:
     def _pose_callback(self, msg):
         pos = msg.pose.position
         if self.callbacks_since_last_recorded >= INTERVAL:
-            self.path_x.append(pos.x)
-            self.path_y.append(pos.y)
-            print(pos.x, pos.y)
+            if self.path is None:
+                self.path = np.array([pos.x, pos.y])
+            else:
+                self.path = np.vstack([
+                    self.path,
+                    (pos.x, pos.y)
+                ])
             self.callbacks_since_last_recorded = 0
-            self.ready_to_animate = True
         self.callbacks_since_last_recorded += 1
 
     def _init_figure(self):
@@ -99,10 +100,10 @@ class DronePosPlotter:
         self.background_img = self.fig.canvas.copy_from_bbox(self.fig.bbox)
 
     def _create_path_line(self):
-        self.path_line, = plt.plot(self.path_x, self.path_y, 'k')
+        self.path_line, = plt.plot(self.path[:,0], self.path[:,1], 'k')
 
     def _update_path_line(self):
-        self.path_line.set_data(self.path_x, self.path_y)
+        self.path_line.set_data(self.path[:,0], self.path[:,1])
 
     def _draw_path_line(self):
         self.ax.draw_artist(self.path_line)
@@ -152,7 +153,7 @@ class DronePosPlotter:
         self._save_background_for_blitting()
 
         print('waiting for data to start arriving...')
-        while not self.ready_to_animate:
+        while self.path is None:
             time.sleep(.2)
         print('Starting animation. Press escape to exit and save to file.')
         self._create_path_line()
@@ -161,7 +162,6 @@ class DronePosPlotter:
         while(1):
             self._step()
             updates += 1
-            print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
             time.sleep(.2)
 
 
