@@ -32,11 +32,11 @@ COUNTER_TURN = 'CounterTurn'    # Counter turn for a random duration
 SEEK_CAR = 'SeekCar'            # Move towards car until in center of view
 FINISHED = 'Finished'           # hover indefintely
 
-TARGET_ALTITUDE = 7.5 # meters
+TARGET_ALTITUDE = 5 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 3.5 # m/s
 MAX_DELTA_THETA = 2.5 # degrees/step
-DELTA_THETA_DECAY_RATE = 0.001 # % per step
+DELTA_THETA_DECAY_RATE = 0.005 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
 NUM_PRIOR_PREDICTIONS = 3
