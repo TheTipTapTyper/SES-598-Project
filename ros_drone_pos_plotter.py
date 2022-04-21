@@ -16,11 +16,6 @@ MIN_X_COORD = -150
 MAX_Y_COORD = 150
 MIN_Y_COORD = -150
 
-MAX_X_PIX = 6500
-MIN_X_PIX = 1
-MAX_Y_PIX = 6500
-MIN_Y_PIX = 1
-
 ANIMATION_RES = 500
 WINDOW_NAME = 'Drone Path'
 DELAY = .1 # sec
@@ -72,8 +67,6 @@ class DronePosPlotter:
     def _pose_callback(self, msg):
         pos = msg.pose.position
         if self.callbacks_since_last_recorded >= INTERVAL:
-            # x = np.interp(pos.x, (MIN_X_COORD, MAX_X_COORD), (MIN_X_PIX, MAX_X_PIX))
-            # y = np.interp(pos.y, (MIN_Y_COORD, MAX_Y_COORD), (MIN_Y_PIX, MAX_Y_PIX))
             self.path_x.append(pos.x)
             self.path_y.append(pos.y)
             print(pos.x, pos.y)
@@ -90,7 +83,7 @@ class DronePosPlotter:
         fig.tight_layout(pad=0)
         bg_img = cv2.resize(self.terrain, (ANIMATION_RES, ANIMATION_RES))
         ax.imshow(cv2.flip(bg_img, 0), origin='lower', extent=[
-            MIN_X_PIX, MAX_X_PIX, MIN_Y_PIX, MAX_Y_PIX
+            MIN_X_COORD, MAX_X_COORD, MIN_Y_COORD, MAX_Y_COORD
         ])
         ax.set_xlim([MIN_X_COORD, MAX_X_COORD])
         ax.set_ylim([MIN_Y_COORD, MAX_Y_COORD])
