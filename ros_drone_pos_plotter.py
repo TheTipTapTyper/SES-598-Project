@@ -28,7 +28,7 @@ INTERVAL = 25
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 FONT_SCALE = .5
 FONT_COLOR = (255, 0, 0)
-THICKNESS = 2
+THICKNESS = 1.5
 TEXT_X = 20
 TEXT_Y = 20
 
@@ -67,18 +67,6 @@ class DronePosPlotter:
             )
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
-            if self.d_ctrl_status is not None:
-                status_elements = self.d_ctrl_status.split('|')
-                for idx, element in enumerate(status_elements):
-                    image = cv2.putText(
-                        img=image, 
-                        text=element, 
-                        org=(TEXT_X, TEXT_Y + idx*TEXT_Y),
-                        fontFace=FONT, 
-                        fontScale=FONT_SCALE, 
-                        color=FONT_COLOR,
-                        thickness=THICKNESS
-                    )
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     def _pose_callback(self, msg):
@@ -127,15 +115,32 @@ class DronePosPlotter:
         self.fig.canvas.blit(self.ax.bbox)
         self.fig.canvas.flush_events()
 
+    def _add_status_text(self, image):
+        if self.d_ctrl_status is not None:
+            status_elements = self.d_ctrl_status.split('|')
+            for idx, element in enumerate(status_elements):
+                image = cv2.putText(
+                    img=image, 
+                    text=element, 
+                    org=(TEXT_X, TEXT_Y + idx*TEXT_Y),
+                    fontFace=FONT, 
+                    fontScale=FONT_SCALE, 
+                    color=FONT_COLOR,
+                    thickness=THICKNESS
+                )
+        return image
+
     def _display(self):
-        image = cv2.cvtColor(
+        fig_image = cv2.cvtColor(
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
-        self.fig_image_shape = image.shape
+        self.fig_image_shape = fig_image.shape
+        full_image = fig_image
         if self.camera_view is not None:
-            image = np.vstack([image, self.camera_view])
-        cv2.imshow(WINDOW_NAME, image)
+            cam_image = self._add_status_text(self.camera_view)
+            full_image = np.vstack([fig_image, cam_image])
+        cv2.imshow(WINDOW_NAME, full_image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
             exit()
