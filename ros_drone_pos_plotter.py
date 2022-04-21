@@ -125,7 +125,7 @@ class DronePosPlotter:
         #time.sleep(2)
         self._create_path_line()
         self.running = True
-        
+        rospy.spin()
         #while(1):
 
 
