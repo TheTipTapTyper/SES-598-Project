@@ -51,8 +51,6 @@ class DronePosPlotter:
             self.path_y.append(y)
             self.callbacks_since_last_recorded = 0
             self.ready_to_animate = True
-            if self.running:
-                self._step()
         self.callbacks_since_last_recorded += 1
 
     def _init_figure(self):
@@ -125,9 +123,11 @@ class DronePosPlotter:
         #time.sleep(2)
         self._create_path_line()
         self.running = True
-        rospy.spin()
-        #while(1):
-
+        updates = 0
+        while(1):
+            self._step()
+            updates += 1
+            self.print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
 
             # start = time.time()
             # self._update_path_line()
