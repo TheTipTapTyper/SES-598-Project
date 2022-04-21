@@ -139,9 +139,9 @@ class DroneController:
 
     def _publish_status(self):
         status = 'state: {}\nterrain: {}\n pos (xyz): {:.1f} {:.1f} {:.1f}\n'
-        status += 'heading: {:.1f} deg\ndelta_theta: {:.2f} deg/tick'
-        status.format(self.state, self.current_terrain, self.x_pos, self.y_pos,
-            self.z_pos, self.heading, self.delta_theta
+        status += 'heading: {:.1f} deg\ndelta_theta: {:.2f} deg/ntick'
+        status = status.format(self.state, self.current_terrain, self.x_pos, 
+            self.y_pos, self.z_pos, self.heading, self.delta_theta
         )
         self.status_pub.publish(status)
 
