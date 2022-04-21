@@ -26,9 +26,10 @@ WINDOW_NAME = 'Drone Path'
 DELAY = .1 # sec
 INTERVAL = 25
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-FONT_SCALE = 1
-FONT_COLOR = (0, 255, 0)
-TEXT_COORDS = (20,100)
+FONT_SCALE = .5
+FONT_COLOR = (255, 0, 0)
+TEXT_X = 20
+TEXT_Y = 20
 
 
 class DronePosPlotter:
@@ -66,14 +67,16 @@ class DronePosPlotter:
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
             if self.d_ctrl_status is not None:
-                image = cv2.putText(
-                    img=image, 
-                    text=self.d_ctrl_status, 
-                    org=TEXT_COORDS,
-                    fontFace=FONT, 
-                    fontScale=FONT_SCALE, 
-                    color=FONT_COLOR
-                )
+                status_elements = self.d_ctrl_status.split('|')
+                for idx, element in enumerate(status_elements):
+                    image = cv2.putText(
+                        img=element, 
+                        text=self.d_ctrl_status, 
+                        org=(TEXT_X, TEXT_Y + idx*TEXT_Y),
+                        fontFace=FONT, 
+                        fontScale=FONT_SCALE, 
+                        color=FONT_COLOR
+                    )
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     def _pose_callback(self, msg):
