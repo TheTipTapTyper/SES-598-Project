@@ -1,9 +1,19 @@
+"""
+Author: Joshua Martin
+Email: jmmartin397@protonmail.com
+Created: 3/22/2022
+Class: SES 598 Autonomous Exploration Systems
+Project: Parking Lot Explorer
+
+This module implements a Trainer which uses simanneal's simulated annealing
+base class to train a terrain classifier using the method described in
+http://www.cim.mcgill.edu/~mrl/pubs/philg/crv2009.pdf
+"""
+
 from simanneal.anneal import Annealer
 from terrain_cls import TerrainClassifier
 from numpy.random import default_rng
 import numpy as np
-import cv2
-
 
 
 class ClassifierTrainer(Annealer):
@@ -195,7 +205,6 @@ def train():
         main_image[4200:5200,4000:5000],
     ]
 
-    #Image.fromarray(training_image).show()
     dct = ClassifierTrainer(num_updates=num_updates, discrete=discrete, 
         grid_size=grid_size, steps=steps, features=features)
     dct.load_images(training_images)

@@ -1,3 +1,14 @@
+"""
+Author: Joshua Martin
+Email: jmmartin397@protonmail.com
+Created: 4/21/2022
+Class: SES 598 Autonomous Exploration Systems
+Project: Parking Lot Explorer
+
+This module implements a ros node which serves as a visualization tool for the
+ros_drone_controller node.
+"""
+
 import rospy
 from rospy.numpy_msg import numpy_msg
 from geometry_msgs.msg import PoseStamped

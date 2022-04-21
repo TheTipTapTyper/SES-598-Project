@@ -9,7 +9,6 @@ This file implements the terrain classifier/segmenter described in
 http://www.cim.mcgill.edu/~mrl/pubs/philg/crv2009.pdf. Some parts of the algorithm
 are unclear and are imporvised as necessary.
 """
-from fileinput import filename
 import pickle
 import numpy as np
 from PIL import Image
