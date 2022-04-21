@@ -1,7 +1,7 @@
 import rospy
 from rospy.numpy_msg import numpy_msg # https://answers.ros.org/question/64318/how-do-i-convert-an-ros-image-into-a-numpy-array/
 from mavros_msgs.msg import State
-from geometry_msgs.msg import PoseStamped, Point, Quaternion, Twist
+from geometry_msgs.msg import PoseStamped, Twist
 from sensor_msgs.msg import Image as SensorImage
 from std_msgs.msg import String
 import math
@@ -10,9 +10,7 @@ import random
 
 from mavros_msgs.srv import CommandBool, SetMode
 from std_msgs.msg import String
-#from tf.transformations import euler_from_quaternion
 
-from itertools import cycle
 import time
 
 from detect_red_car import detect_red_obj
@@ -29,7 +27,6 @@ RATE = 10 # Hz
 GO_STRAIGHT = 'GoStraight'      # Move forward until desert detected
 FIND_LOT = 'FindLot'            # Turn with increasing radius until parking lot found
 COUNTER_TURN = 'CounterTurn'    # Counter turn for a random duration
-#SEEK_CAR = 'SeekCar'            # Move towards car until in center of view
 FINISHED = 'Finished'           # hover indefintely
 
 TARGET_ALTITUDE = 5 # meters
@@ -72,7 +69,6 @@ class DroneController:
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
         self.cmd_arming_service = rospy.ServiceProxy(CMD_ARMING_SRV, CommandBool)
         self.x_pos = self.y_pos = self.z_pos = 0 # meters
-        self.roll = self.pitch = self.yaw = 0 # degrees
         self.cmd_x = self.cmd_y = self.cmd_z = 0 # m/s
         self.heading = 0 # direction of travel in degrees
         self.delta_theta = 0 # deg/step
@@ -132,10 +128,6 @@ class DroneController:
         self.x_pos = pos.x
         self.y_pos = pos.y
         self.z_pos = pos.z
-        # quat = msg.pose.orientation
-        # angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
-        # angles = tuple(rad2deg(angle) for angle in angles)
-        # self.roll, self.pitch, self.yaw = angles
 
     def _state_callback(self, msg):
         self.mode = msg.mode
@@ -195,9 +187,9 @@ class DroneController:
                     z_cmd *= -1
             self.heading += self.turn_direction * self.delta_theta
             self.heading = self.heading % 360
-            heading = deg2rad(self.heading)
-            cmd.linear.x = np.cos(heading) * MAX_VELOCITY
-            cmd.linear.y = np.sin(heading) * MAX_VELOCITY
+            heading_rad = self.heading * np.pi / 180
+            cmd.linear.x = np.cos(heading_rad) * MAX_VELOCITY
+            cmd.linear.y = np.sin(heading_rad) * MAX_VELOCITY
             cmd.linear.z = z_cmd
             self.vel_pub.publish(cmd)
 
@@ -209,7 +201,6 @@ class DroneController:
         self.update_state()
         self.move()
         self._publish_status()
-        #print(detect_red_obj(self.camera_view))
         print('{}: x: {:.2f} y: {:.2f} z: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
             self.state, self.x_pos, self.y_pos, self.z_pos, self.heading, self.delta_theta
         ))
@@ -222,20 +213,6 @@ class DroneController:
         while(1):
             self.step()
             self.rate.sleep()
-
-
-def distance(pos1, pos2):
-    total = 0
-    for coord1, coord2 in zip(pos1, pos2):
-        diff = coord1 - coord2
-        total += diff ** 2
-    return math.sqrt(total)
-
-def rad2deg(angle):
-    return angle * 180 / math.pi
-
-def deg2rad(angle):
-    return angle * math.pi / 180
 
 
 if __name__ == '__main__':

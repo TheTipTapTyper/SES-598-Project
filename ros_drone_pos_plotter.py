@@ -165,10 +165,6 @@ class DronePosPlotter:
             time.sleep(.2)
 
 
-
-
-
-
 if __name__ == '__main__':
     dpp = DronePosPlotter('complex_parking_lot.png')
     dpp.run()
