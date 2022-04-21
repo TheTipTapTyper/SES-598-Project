@@ -128,7 +128,7 @@ class DronePosPlotter:
             self._step()
             updates += 1
             print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
-
+            time.sleep(.2)
             # start = time.time()
             # self._update_path_line()
             # print('_update_path_line took {:.3f} sec'.format(time.time() - start))
