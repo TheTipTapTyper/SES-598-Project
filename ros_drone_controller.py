@@ -43,6 +43,9 @@ NUM_PRIOR_PREDICTIONS = 3
 DISTANCE_THRESHOLD = 1 # meters
 RED_COVERAGE_THRESHOLD = 0.05
 
+MOVE_TYPE_VEL = 'vel'
+MOVE_TYPE_POS = 'pos'
+
 
 class DroneController:
     def __init__(self, t_classifier, lot_class=1):
@@ -84,6 +87,7 @@ class DroneController:
         self.turn_direction = 1
         self.camera_view = None
         self.current_terrain = None
+        self.final_x, self.final_y = None, None
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -150,6 +154,8 @@ class DroneController:
             self.camera_view, coverage_threshold=RED_COVERAGE_THRESHOLD
         ) is not None:
             self.state = FINISHED
+            self.final_x = self.x_pos
+            self.final_y = self.y_pos
         if self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
@@ -174,10 +180,13 @@ class DroneController:
                 self.delta_theta = 0
 
     def move(self):
-        cmd = Twist()
         if self.state == FINISHED: # hover
-            cmd.linear.x = cmd.linear.y = cmd.linear.z = 0
+            cmd = PoseStamped()
+            cmd.pose.position.x = self.final_x
+            cmd.pose.position.y = self.final_y
+            cmd.pose.position.z = TARGET_ALTITUDE
         else:
+            cmd = Twist()
             z_cmd = 0
             z_diff = self.z_pos - TARGET_ALTITUDE
             if np.abs(z_diff) > DISTANCE_THRESHOLD:
@@ -190,7 +199,7 @@ class DroneController:
             cmd.linear.x = np.cos(heading) * MAX_VELOCITY
             cmd.linear.y = np.sin(heading) * MAX_VELOCITY
             cmd.linear.z = z_cmd
-        self.vel_pub.publish(cmd)
+            self.vel_pub.publish(cmd)
 
     def step(self):
         """ Move forward one time step. Update state based on segmenter output
