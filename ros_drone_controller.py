@@ -78,6 +78,7 @@ class DroneController:
         self.flip_classes = not bool(lot_class)
         self.turns_since_dir_change = 0
         self.turn_direction = 1
+        self.camera_view = None
 
     def ensure_correct_mode(self):
         if self.mode != CUSTOM_MODE:
@@ -202,6 +203,9 @@ class DroneController:
 
     def run(self):
         self.state = GO_STRAIGHT
+        while self.camera_view is None:
+            print('waiting for camera signal')
+            self.rate.sleep()
         while(1):
             self.step()
             self.rate.sleep()
