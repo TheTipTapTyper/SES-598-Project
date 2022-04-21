@@ -1,5 +1,7 @@
 import rospy
+from rospy.numpy_msg import numpy_msg
 from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import Image
 
 import numpy as np
 import cv2
@@ -25,7 +27,7 @@ WINDOW_NAME = 'Drone Path'
 
 DELAY = .1 # sec
 
-INTERVAL = 50
+INTERVAL = 25
 
 
 class DronePosPlotter:
@@ -35,12 +37,27 @@ class DronePosPlotter:
         self.output_fn = output_fn
         rospy.init_node('drone_pos_plotter', anonymous=True)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, 
-            callback=self._pose_callback)
+            callback=self._pose_callback
+        )
+        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), 
+            callback=self._image_callback
+        )
         self.path_x = []
         self.path_y = []
         self.ready_to_animate = False
         self.last_updated = time.time()
         self.callbacks_since_last_recorded = INTERVAL
+        self.camera_view = None
+        self.fig_image_shape = None
+
+    def _image_callback(self, msg):
+        if self.fig_image_shape is not None:
+            image = np.frombuffer(msg.data, dtype=np.uint8).reshape(
+                msg.height, msg.width, -1
+            )
+            h, w, _ = self.fig_image_shape
+            image = cv2.resize(image, (w, h))
+            self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
@@ -93,15 +110,13 @@ class DronePosPlotter:
             np.array(self.fig.canvas.renderer._renderer)[:,:,:3], 
             cv2.COLOR_RGB2BGR
         )
+        if self.camera_view is not None:
+            image = np.vstack(image, self.camera_view)
+        self.fig_image_shape = image.shape
         cv2.imshow(WINDOW_NAME, image)
         if cv2.waitKey(1) & 0xFF == 27:
             cv2.destroyAllWindows()
             exit()
-
-    # def _sleep(self):
-    #     time_since_update = time.time() - self.last_updated
-    #     sleep_duration = max(time_since_update, DELAY)
-    #     time.sleep(sleep_duration)
 
     def _step(self):
         self._update_path_line()
@@ -119,8 +134,6 @@ class DronePosPlotter:
         while not self.ready_to_animate:
             time.sleep(.2)
         print('Starting animation. Press escape to exit and save to file.')
-        #self._display()
-        #time.sleep(2)
         self._create_path_line()
         self.running = True
         updates = 0
@@ -128,25 +141,7 @@ class DronePosPlotter:
             self._step()
             updates += 1
             print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
-            time.sleep(1)
-            # start = time.time()
-            # self._update_path_line()
-            # print('_update_path_line took {:.3f} sec'.format(time.time() - start))
-
-            # start = time.time()
-            # self._restore_background()
-            # print('_restore_background took {:.3f} sec'.format(time.time() - start))
-
-            # start = time.time()
-            # self._draw_path_line()
-            # print('_draw_path_line took {:.3f} sec'.format(time.time() - start))
-
-            # start = time.time()
-            # self._display()
-            # print('_display took {:.3f} sec'.format(time.time() - start))
-
-            # time.sleep(DELAY) #self._sleep()
-            # print(len(self.path_x))
+            time.sleep(2)
 
 
 

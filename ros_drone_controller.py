@@ -35,7 +35,7 @@ FINISHED = 'Finished'           # hover indefintely
 TARGET_ALTITUDE = 15 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 5 # m/s
-MAX_DELTA_THETA = 1 # degrees/step
+MAX_DELTA_THETA = 5 # degrees/step
 DELTA_THETA_DECAY_RATE = 0.01 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
@@ -47,12 +47,19 @@ class DroneController:
     def __init__(self, t_classifier, lot_class=1):
         rospy.init_node('py_drone_ctrl', anonymous=True)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, 
-            callback=self._pose_callback)
+            callback=self._pose_callback
+        )
         rospy.Subscriber('/mavros/state', State, callback=self._state_callback)
-        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), callback=self._image_callback)
+        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), 
+            callback=self._image_callback
+        )
         rospy.Subscriber('/mavros/local_', State, callback=self._state_callback)
-        self.pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
-        self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel_unstamped', Twist, queue_size=10)
+        self.pose_pub = rospy.Publisher('/mavros/setpoint_position/local', 
+            PoseStamped, queue_size=10
+        )
+        self.vel_pub = rospy.Publisher('/mavros/setpoint_velocity/cmd_vel_unstamped', 
+            Twist, queue_size=10
+        )
         rospy.wait_for_service(SET_MODE_SRV)
         rospy.wait_for_service(CMD_ARMING_SRV)
         self.set_mode_service = rospy.ServiceProxy(SET_MODE_SRV, SetMode)
@@ -85,7 +92,9 @@ class DroneController:
                 print('/mavros/cmd/arming service call failed: ', e)
 
     def _image_callback(self, msg):
-        self.camera_view = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        self.camera_view = np.frombuffer(msg.data, dtype=np.uint8).reshape(
+            msg.height, msg.width, -1
+        )
 
     @property
     def is_over_lot(self):
@@ -178,8 +187,8 @@ class DroneController:
         self.ensure_correct_mode()
         self.update_state()
         self.move()
-        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} yaw: {:.2f} pitch: {:.2f} roll: {:.2f} d_theta: {:.2f}'.format(
-            self.state, self.x_pos, self.y_pos, self.z_pos, self.yaw, self.pitch, self.roll, self.delta_theta
+        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} yaw: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
+            self.state, self.x_pos, self.y_pos, self.z_pos, self.yaw, self.heading, self.delta_theta
         ))
 
     def run(self):
