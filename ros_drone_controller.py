@@ -35,7 +35,7 @@ FINISHED = 'Finished'           # hover indefintely
 TARGET_ALTITUDE = 15 # meters
 TURNS_PER_DIRECTION = 5
 MAX_VELOCITY = 5 # m/s
-MAX_DELTA_THETA = 1.5 # rad/s
+MAX_DELTA_THETA = .5 # rad/s
 DELTA_THETA_DECAY_RATE = 0.01 # % per step
 MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
@@ -100,16 +100,16 @@ class DroneController:
         if self.flip_classes:
             prediction = 1 - prediction
         self.prior_predictions.append(prediction)
-        result = (sum(self.prior_predictions) / NUM_PRIOR_PREDICTIONS) >= .5
+        result = (sum(self.prior_predictions) / len(self.prior_predictions)) >= .5
         print('over lot' if result else 'over desert')
         return result
 
-    def _pose_callback(self, pose):
-        pos = pose.pose.position
+    def _pose_callback(self, msg):
+        pos = msg.pose.position
         self.x_pos = pos.x
         self.y_pos = pos.y
         self.z_pos = pos.z
-        quat = pose.pose.orientation
+        quat = msg.pose.orientation
         angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
         angles = tuple(rad2deg(angle) for angle in angles)
         self.roll, self.pitch, self.yaw = angles

@@ -13,6 +13,14 @@ MIN_X_COORD = -150
 MAX_Y_COORD = 150
 MIN_Y_COORD = -150
 
+MAX_X_PIX = 6500
+MIN_X_PIX = 1
+MAX_Y_PIX = 6500
+MIN_Y_PIX = 1
+
+ANIMATION_RES = 500
+
+
 WINDOW_NAME = 'Drone Path'
 
 DELAY = .1 # sec
@@ -22,6 +30,7 @@ INTERVAL = 100
 
 class DronePosPlotter:
     def __init__(self, terrain_fn, output_fn=None):
+        self.running = False
         self.terrain_fn = terrain_fn
         self.output_fn = output_fn
         rospy.init_node('drone_pos_plotter', anonymous=True)
@@ -29,17 +38,21 @@ class DronePosPlotter:
             callback=self._pose_callback)
         self.path_x = []
         self.path_y = []
-        self.read_to_animate = False
+        self.ready_to_animate = False
         self.last_updated = time.time()
         self.callbacks_since_last_recorded = INTERVAL
 
     def _pose_callback(self, msg):
         pos = msg.pose.position
         if self.callbacks_since_last_recorded >= INTERVAL:
-            self.path_x.append(pos.x)
-            self.path_y.append(pos.y)
+            x = np.interp(pos.x, (MIN_X_COORD, MAX_X_COORD), (MIN_X_PIX, MAX_X_PIX))
+            y = np.interp(pos.y, (MIN_Y_COORD, MAX_Y_COORD), (MIN_Y_PIX, MAX_Y_PIX))
+            self.path_x.append(x)
+            self.path_y.append(y)
             self.callbacks_since_last_recorded = 0
-            self.read_to_animate = True
+            self.ready_to_animate = True
+            if self.running:
+                self._step()
         self.callbacks_since_last_recorded += 1
 
     def _init_figure(self):
@@ -49,11 +62,12 @@ class DronePosPlotter:
         self.rows, self.cols = self.terrain.shape[:2]
         fig, ax = plt.subplots()
         fig.tight_layout(pad=0)
-        resolution = 500
-        bg_img = cv2.resize(self.terrain, (resolution, resolution))
-        ax.imshow(cv2.flip(bg_img, 0), origin='lower', extent=[1,6500, 1, 6500])
-        ax.set_xlim([1,6500])
-        ax.set_ylim([1,6500])
+        bg_img = cv2.resize(self.terrain, (ANIMATION_RES, ANIMATION_RES))
+        ax.imshow(cv2.flip(bg_img, 0), origin='lower', extent=[
+            MIN_X_PIX, MAX_X_PIX, MIN_Y_PIX, MAX_Y_PIX
+        ])
+        ax.set_xlim([MIN_X_PIX, MAX_X_PIX])
+        ax.set_ylim([MIN_Y_PIX, MAX_Y_PIX])
         self.fig = fig
         self.ax = ax
 
@@ -86,10 +100,16 @@ class DronePosPlotter:
             cv2.destroyAllWindows()
             exit()
 
-    def _sleep(self):
-        time_since_update = time.time() - self.last_updated
-        sleep_duration = max(time_since_update, DELAY)
-        time.sleep(sleep_duration)
+    # def _sleep(self):
+    #     time_since_update = time.time() - self.last_updated
+    #     sleep_duration = max(time_since_update, DELAY)
+    #     time.sleep(sleep_duration)
+
+    def _step(self):
+        self._update_path_line()
+        self._restore_background()
+        self._draw_path_line()
+        self._display()
 
     def run(self):
         print('initializing figure')
@@ -98,28 +118,32 @@ class DronePosPlotter:
         self._save_background_for_blitting()
 
         print('waiting for data to start arriving...')
-        while not self.read_to_animate:
+        while not self.ready_to_animate:
             time.sleep(.2)
         print('Starting animation. Press escape to exit and save to file.')
-        self._display()
-        time.sleep(2)
+        #self._display()
+        #time.sleep(2)
         self._create_path_line()
-        while(1):
-            start = time.time()
-            self._update_path_line()
-            print('_update_path_line took {:.3f} sec'.format(time.time() - start))
+        self.running = True
+        
+        #while(1):
 
-            start = time.time()
-            self._restore_background()
-            print('_restore_background took {:.3f} sec'.format(time.time() - start))
 
-            start = time.time()
-            self._draw_path_line()
-            print('_draw_path_line took {:.3f} sec'.format(time.time() - start))
+            # start = time.time()
+            # self._update_path_line()
+            # print('_update_path_line took {:.3f} sec'.format(time.time() - start))
 
-            start = time.time()
-            self._display()
-            print('_display took {:.3f} sec'.format(time.time() - start))
+            # start = time.time()
+            # self._restore_background()
+            # print('_restore_background took {:.3f} sec'.format(time.time() - start))
+
+            # start = time.time()
+            # self._draw_path_line()
+            # print('_draw_path_line took {:.3f} sec'.format(time.time() - start))
+
+            # start = time.time()
+            # self._display()
+            # print('_display took {:.3f} sec'.format(time.time() - start))
 
             # time.sleep(DELAY) #self._sleep()
             # print(len(self.path_x))
