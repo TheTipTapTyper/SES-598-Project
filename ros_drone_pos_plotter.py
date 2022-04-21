@@ -9,7 +9,7 @@ import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 import time
-
+from detect_red_car import detect_red_obj
 
 MAX_X_COORD = 150
 MIN_X_COORD = -150
@@ -62,6 +62,7 @@ class DronePosPlotter:
             )
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
+            detect_red_obj(image)
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     def _pose_callback(self, msg):

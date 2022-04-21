@@ -10,7 +10,7 @@ import random
 
 from mavros_msgs.srv import CommandBool, SetMode
 from std_msgs.msg import String
-from tf.transformations import euler_from_quaternion
+#from tf.transformations import euler_from_quaternion
 
 from itertools import cycle
 import time
@@ -127,10 +127,10 @@ class DroneController:
         self.x_pos = pos.x
         self.y_pos = pos.y
         self.z_pos = pos.z
-        quat = msg.pose.orientation
-        angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
-        angles = tuple(rad2deg(angle) for angle in angles)
-        self.roll, self.pitch, self.yaw = angles
+        # quat = msg.pose.orientation
+        # angles = (euler_from_quaternion([quat.x, quat.y, quat.z, quat.w]))
+        # angles = tuple(rad2deg(angle) for angle in angles)
+        # self.roll, self.pitch, self.yaw = angles
 
     def _state_callback(self, msg):
         self.mode = msg.mode
@@ -138,7 +138,7 @@ class DroneController:
 
     def _publish_status(self):
         status = 'state: {}|terrain: {}|pos (xyz): {:.1f} {:.1f} {:.1f}|'
-        status += 'heading: {:.1f} deg|delta_theta: {:.2f} deg/ntick'
+        status += 'heading: {:.1f} deg|delta_theta: {:.2f} deg/tick'
         status = status.format(self.state, self.current_terrain, self.x_pos, 
             self.y_pos, self.z_pos, self.heading, self.delta_theta
         )
@@ -197,9 +197,10 @@ class DroneController:
         self.update_state()
         self.move()
         self._publish_status()
-        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} yaw: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
-            self.state, self.x_pos, self.y_pos, self.z_pos, self.yaw, self.heading, self.delta_theta
-        ))
+        #print(detect_red_obj(self.camera_view))
+        # print('{}: x: {:.2f} y: {:.2f} z: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
+        #     self.state, self.x_pos, self.y_pos, self.z_pos, self.heading, self.delta_theta
+        # ))
 
     def run(self):
         self.state = GO_STRAIGHT
