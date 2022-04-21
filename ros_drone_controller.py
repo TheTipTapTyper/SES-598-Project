@@ -68,7 +68,7 @@ class DroneController:
         self.roll = self.pitch = self.yaw = 0 # degrees
         self.cmd_x = self.cmd_y = self.cmd_z = 0 # m/s
         self.heading = 0 # direction of travel in degrees
-        self.delta_theta = 0 # rad/s
+        self.delta_theta = 0 # deg/step
         self.is_ready = False
         self.rate = rospy.Rate(RATE)
         self.mode = None
@@ -132,13 +132,13 @@ class DroneController:
         self.cmd_y = np.sin(deg2rad(self.yaw)) * MAX_VELOCITY
 
     def update_state(self):
-        if self.state == INIT:
-            if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
-                self.state = GO_STRAIGHT
-                self.cmd_z = 0
-                self.delta_theta = 0
-                self.set_vel_cmds_based_on_heading()
-        elif self.state == GO_STRAIGHT:
+        # if self.state == INIT:
+        #     if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
+        #         self.state = GO_STRAIGHT
+        #         self.cmd_z = 0
+        #         self.delta_theta = 0
+        #         self.set_vel_cmds_based_on_heading()
+        if self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
                     self.turn_direction *= -1
@@ -166,21 +166,27 @@ class DroneController:
 
     def move(self):
         cmd = Twist()
-        if self.state == INIT: # takeoff
-            z_cmd = MAX_VELOCITY
-            if self.z_pos > TARGET_ALTITUDE:
-                z_cmd *= -1
-            cmd.linear.z = z_cmd
-            cmd.linear.x = cmd.linear.y = 0
-        elif self.state == FINISHED: # hover
+        # if self.state == INIT: # takeoff
+        #     z_cmd = MAX_VELOCITY
+        #     if self.z_pos > TARGET_ALTITUDE:
+        #         z_cmd *= -1
+        #     cmd.linear.z = z_cmd
+        #     cmd.linear.x = cmd.linear.y = 0
+        if self.state == FINISHED: # hover
             cmd.linear.x = cmd.linear.y = cmd.linear.z = 0
         else:
+            z_cmd = 0
+            z_diff = self.z_pos - TARGET_ALTITUDE
+            if np.abs(z_diff) > DISTANCE_THRESHOLD:
+                z_cmd = MAX_VELOCITY
+                if z_diff > 0: # drone too high
+                    z_cmd *= -1
             self.heading += self.turn_direction * self.delta_theta
             self.heading = self.heading % 360
             heading = deg2rad(self.heading)
             cmd.linear.x = np.cos(heading) * MAX_VELOCITY
             cmd.linear.y = np.sin(heading) * MAX_VELOCITY
-            cmd.linear.z = 0
+            cmd.linear.z = z_cmd
         self.vel_pub.publish(cmd)
 
     def step(self):
@@ -195,7 +201,7 @@ class DroneController:
         ))
 
     def run(self):
-        self.state = INIT
+        self.state = GO_STRAIGHT
         while(1):
             self.step()
             self.rate.sleep()
