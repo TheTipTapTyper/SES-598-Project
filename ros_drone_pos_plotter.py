@@ -127,7 +127,7 @@ class DronePosPlotter:
         while(1):
             self._step()
             updates += 1
-            self.print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
+            print('update #{} | {} points plotted'.format(updates, len(self.path_x)))
 
             # start = time.time()
             # self._update_path_line()
