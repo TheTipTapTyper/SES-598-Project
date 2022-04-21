@@ -70,8 +70,8 @@ class DronePosPlotter:
                 status_elements = self.d_ctrl_status.split('|')
                 for idx, element in enumerate(status_elements):
                     image = cv2.putText(
-                        img=element, 
-                        text=self.d_ctrl_status, 
+                        img=image, 
+                        text=element, 
                         org=(TEXT_X, TEXT_Y + idx*TEXT_Y),
                         fontFace=FONT, 
                         fontScale=FONT_SCALE, 
