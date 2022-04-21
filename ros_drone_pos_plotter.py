@@ -57,7 +57,6 @@ class DronePosPlotter:
 
     def _status_callback(self, msg):
         self.d_ctrl_status = msg
-        print(self.d_ctrl_status)
 
     def _image_callback(self, msg):
         if self.fig_image_shape is not None:
@@ -67,8 +66,13 @@ class DronePosPlotter:
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
             if self.d_ctrl_status is not None:
-                image = cv2.putText(image, self.d_ctrl_status, TEXT_COORDS,
-                    FONT, FONT_SCALE, FONT_COLOR
+                image = cv2.putText(
+                    image=image, 
+                    text=self.d_ctrl_status, 
+                    org=TEXT_COORDS,
+                    font=FONT, 
+                    fontScale=FONT_SCALE, 
+                    color=FONT_COLOR
                 )
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 

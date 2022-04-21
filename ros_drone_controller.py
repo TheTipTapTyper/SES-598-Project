@@ -26,7 +26,6 @@ CUSTOM_MODE = 'OFFBOARD'
 RATE = 10 # Hz
 
 # FSM states
-INIT = 'Init'                   # move to initial position
 GO_STRAIGHT = 'GoStraight'      # Move forward until desert detected
 FIND_LOT = 'FindLot'            # Turn with increasing radius until parking lot found
 COUNTER_TURN = 'CounterTurn'    # Counter turn for a random duration
@@ -146,12 +145,6 @@ class DroneController:
         self.status_pub.publish(status)
 
     def update_state(self):
-        # if self.state == INIT:
-        #     if TARGET_ALTITUDE - self.z_pos < DISTANCE_THRESHOLD:
-        #         self.state = GO_STRAIGHT
-        #         self.cmd_z = 0
-        #         self.delta_theta = 0
-        #         self.set_vel_cmds_based_on_heading()
         if self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
@@ -179,12 +172,6 @@ class DroneController:
 
     def move(self):
         cmd = Twist()
-        # if self.state == INIT: # takeoff
-        #     z_cmd = MAX_VELOCITY
-        #     if self.z_pos > TARGET_ALTITUDE:
-        #         z_cmd *= -1
-        #     cmd.linear.z = z_cmd
-        #     cmd.linear.x = cmd.linear.y = 0
         if self.state == FINISHED: # hover
             cmd.linear.x = cmd.linear.y = cmd.linear.z = 0
         else:
