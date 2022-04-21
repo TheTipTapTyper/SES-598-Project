@@ -22,13 +22,13 @@ MAX_Y_PIX = 6500
 MIN_Y_PIX = 1
 
 ANIMATION_RES = 500
-
-
 WINDOW_NAME = 'Drone Path'
-
 DELAY = .1 # sec
-
 INTERVAL = 25
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 1
+FONT_COLOR = (0, 255, 0)
+TEXT_COORDS = (20,100)
 
 
 class DronePosPlotter:
@@ -66,6 +66,10 @@ class DronePosPlotter:
             )
             h, w, _ = self.fig_image_shape
             image = cv2.resize(image, (w, h))
+            if self.d_ctrl_status is not None:
+                image = cv2.putText(image, self.d_ctrl_status, TEXT_COORDS,
+                    FONT, FONT_SCALE, FONT_COLOR
+                )
             self.camera_view = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     def _pose_callback(self, msg):
