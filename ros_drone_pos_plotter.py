@@ -25,10 +25,10 @@ ANIMATION_RES = 500
 WINDOW_NAME = 'Drone Path'
 DELAY = .1 # sec
 INTERVAL = 25
-FONT = cv2.FONT_HERSHEY_SIMPLEX
-FONT_SCALE = .5
-FONT_COLOR = (255, 0, 0)
-THICKNESS = 1.5
+FONT = cv2.FONT_HERSHEY_DUPLEX
+FONT_SCALE = .6
+FONT_COLOR = (0, 0, 0)
+THICKNESS = 1
 TEXT_X = 20
 TEXT_Y = 20
 
@@ -72,11 +72,11 @@ class DronePosPlotter:
     def _pose_callback(self, msg):
         pos = msg.pose.position
         if self.callbacks_since_last_recorded >= INTERVAL:
-            x = np.interp(pos.x, (MIN_X_COORD, MAX_X_COORD), (MIN_X_PIX, MAX_X_PIX))
-            y = np.interp(pos.y, (MIN_Y_COORD, MAX_Y_COORD), (MIN_Y_PIX, MAX_Y_PIX))
-            self.path_x.append(x)
-            self.path_y.append(y)
-            print(x, y)
+            # x = np.interp(pos.x, (MIN_X_COORD, MAX_X_COORD), (MIN_X_PIX, MAX_X_PIX))
+            # y = np.interp(pos.y, (MIN_Y_COORD, MAX_Y_COORD), (MIN_Y_PIX, MAX_Y_PIX))
+            self.path_x.append(pos.x)
+            self.path_y.append(pos.y)
+            print(pos.x, pos.y)
             self.callbacks_since_last_recorded = 0
             self.ready_to_animate = True
         self.callbacks_since_last_recorded += 1
@@ -92,8 +92,8 @@ class DronePosPlotter:
         ax.imshow(cv2.flip(bg_img, 0), origin='lower', extent=[
             MIN_X_PIX, MAX_X_PIX, MIN_Y_PIX, MAX_Y_PIX
         ])
-        ax.set_xlim([MIN_X_PIX, MAX_X_PIX])
-        ax.set_ylim([MIN_Y_PIX, MAX_Y_PIX])
+        ax.set_xlim([MIN_X_COORD, MAX_X_COORD])
+        ax.set_ylim([MIN_Y_COORD, MAX_Y_COORD])
         self.fig = fig
         self.ax = ax
 
