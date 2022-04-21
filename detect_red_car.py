@@ -50,7 +50,6 @@ def apply_mask(img, mask):
     masked_img[mask == 0] = 0
     return masked_img
 
-
 def detect_red_obj(img, coverage_threshold=0.005):
     """ Detects whether or not a red object is in the image. If one is detected,
     the x and y coordinates are returned in the range [0,1] where (0,0) is the top
@@ -66,7 +65,6 @@ def detect_red_obj(img, coverage_threshold=0.005):
     """
     mask = red_mask(img)
     coverage = mask.sum() / mask.size
-    print(coverage)
     if coverage < coverage_threshold:
         return None
     y, x = np.array(np.where(mask == 1)).mean(axis=1)
@@ -74,7 +72,6 @@ def detect_red_obj(img, coverage_threshold=0.005):
     x = x / width
     y = y / height
     return x, y
-
 
 if __name__ == '__main__':
     img = cv2.imread('sim_car_close.png')

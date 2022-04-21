@@ -29,7 +29,7 @@ RATE = 10 # Hz
 GO_STRAIGHT = 'GoStraight'      # Move forward until desert detected
 FIND_LOT = 'FindLot'            # Turn with increasing radius until parking lot found
 COUNTER_TURN = 'CounterTurn'    # Counter turn for a random duration
-SEEK_CAR = 'SeekCar'            # Move towards car until in center of view
+#SEEK_CAR = 'SeekCar'            # Move towards car until in center of view
 FINISHED = 'Finished'           # hover indefintely
 
 TARGET_ALTITUDE = 5 # meters
@@ -41,6 +41,7 @@ MAX_COUNTER_TURN_DURATION = 5 # sec
 MIN_COUNTER_TURN_DURATION = 2 # sec
 NUM_PRIOR_PREDICTIONS = 3
 DISTANCE_THRESHOLD = 1 # meters
+RED_COVERAGE_THRESHOLD = 0.05
 
 
 class DroneController:
@@ -145,6 +146,10 @@ class DroneController:
         self.status_pub.publish(status)
 
     def update_state(self):
+        if detect_red_obj(
+            self.camera_view, coverage_threshold=RED_COVERAGE_THRESHOLD
+        ) is not None:
+            self.state = FINISHED
         if self.state == GO_STRAIGHT:
             if not self.is_over_lot:
                 if self.turns_since_dir_change > TURNS_PER_DIRECTION:
@@ -167,8 +172,6 @@ class DroneController:
             if time.time() - self.counter_turn_start > self.counter_turn_duration:
                 self.state = GO_STRAIGHT
                 self.delta_theta = 0
-        else:
-            raise ValueError('Invalid state: {}'.format(self.state))
 
     def move(self):
         cmd = Twist()
@@ -198,9 +201,9 @@ class DroneController:
         self.move()
         self._publish_status()
         #print(detect_red_obj(self.camera_view))
-        # print('{}: x: {:.2f} y: {:.2f} z: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
-        #     self.state, self.x_pos, self.y_pos, self.z_pos, self.heading, self.delta_theta
-        # ))
+        print('{}: x: {:.2f} y: {:.2f} z: {:.2f} heading: {:.2f} d_theta: {:.2f}'.format(
+            self.state, self.x_pos, self.y_pos, self.z_pos, self.heading, self.delta_theta
+        ))
 
     def run(self):
         self.state = GO_STRAIGHT
