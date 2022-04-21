@@ -2,7 +2,7 @@ import rospy
 from rospy.numpy_msg import numpy_msg # https://answers.ros.org/question/64318/how-do-i-convert-an-ros-image-into-a-numpy-array/
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, Twist
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image as SensorImage
 import math
 import numpy as np
 import random
@@ -50,7 +50,7 @@ class DroneController:
             callback=self._pose_callback
         )
         rospy.Subscriber('/mavros/state', State, callback=self._state_callback)
-        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(Image), 
+        rospy.Subscriber('/uav_camera_down/image_raw', numpy_msg(SensorImage), 
             callback=self._image_callback
         )
         rospy.Subscriber('/mavros/local_', State, callback=self._state_callback)
